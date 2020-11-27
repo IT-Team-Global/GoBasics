@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/getsentry/sentry-go"
 	"sort"
 )
 
@@ -35,7 +34,7 @@ func (m *migrator) Migrate() (err error) {
 
 	_, err = m.database.Exec(createVersionsTable)
 	if err != nil {
-		sentry.CaptureException(err)
+		fmt.Println(err.Error())
 		return err
 	}
 
@@ -49,8 +48,7 @@ func (m *migrator) Migrate() (err error) {
 				err = m.definitions[i].PreScriptFunc(m.database)
 				if err != nil {
 					err = errors.New("error pre migrating database at: " + m.definitions[i].Description + " - Error: " + err.Error())
-					sentry.CaptureException(err)
-					fmt.Print(err.Error())
+					fmt.Println(err.Error())
 					return err
 				}
 
@@ -59,20 +57,17 @@ func (m *migrator) Migrate() (err error) {
 			tx, err := m.database.Begin()
 			if err != nil {
 				err = errors.New("error migrating database at: " + m.definitions[i].Description + " - Error: " + err.Error())
-				sentry.CaptureException(err)
-				fmt.Print(err.Error())
+				fmt.Println(err.Error())
 				return err
 			}
 
 			_, err = tx.Exec(m.definitions[i].Script)
 			if err != nil {
 				err = errors.New("error migrating database at: " + m.definitions[i].Description + " - Error: " + err.Error())
-				sentry.CaptureException(err)
-				fmt.Print(err.Error())
+				fmt.Println(err.Error())
 				err2 := tx.Rollback()
 				if err2 != nil {
-					sentry.CaptureException(err2)
-					fmt.Print(err2.Error())
+					fmt.Println(err2.Error())
 				}
 				return err
 			}
@@ -80,12 +75,10 @@ func (m *migrator) Migrate() (err error) {
 			err = tx.Commit()
 			if err != nil {
 				err = errors.New("error migrating database at: " + m.definitions[i].Description + " - Error: " + err.Error())
-				sentry.CaptureException(err)
-				fmt.Print(err.Error())
+				fmt.Println(err.Error())
 				err2 := tx.Rollback()
 				if err2 != nil {
-					sentry.CaptureException(err2)
-					fmt.Print(err2.Error())
+					fmt.Println(err2.Error())
 				}
 				return err
 			}
@@ -94,8 +87,7 @@ func (m *migrator) Migrate() (err error) {
 				err = m.definitions[i].PostScriptFunc(m.database)
 				if err != nil {
 					err = errors.New("error post migrating database at: " + m.definitions[i].Description + " - Error: " + err.Error())
-					sentry.CaptureException(err)
-					fmt.Print(err.Error())
+					fmt.Println(err.Error())
 					return err
 				}
 
@@ -104,8 +96,7 @@ func (m *migrator) Migrate() (err error) {
 			err = m.setVersion(m.definitions[i].Version)
 			if err != nil {
 				err = errors.New("error setting database version at: " + m.definitions[i].Description + " - Error: " + err.Error())
-				sentry.CaptureException(err)
-				fmt.Print(err.Error())
+				fmt.Println(err.Error())
 				return err
 			}
 		}
@@ -120,27 +111,27 @@ func (m *migrator) getVersion() (version float64, err error) {
 
 	statement, err := m.database.Prepare("SELECT version FROM db_version ORDER BY version DESC LIMIT 1")
 	if err != nil {
-		sentry.CaptureException(err)
+		fmt.Println(err.Error())
 		return
 	}
 
 	defer func() {
 		err2 := statement.Close()
 		if err2 != nil {
-			sentry.CaptureException(err2)
+			fmt.Println(err2.Error())
 		}
 	}()
 
 	rows, err := statement.Query()
 	if err != nil {
-		sentry.CaptureException(err)
+		fmt.Println(err.Error())
 		return
 	}
 
 	defer func() {
 		err2 := rows.Close()
 		if err2 != nil {
-			sentry.CaptureException(err2)
+			fmt.Println(err2.Error())
 		}
 	}()
 
@@ -151,7 +142,7 @@ func (m *migrator) getVersion() (version float64, err error) {
 
 	err = rows.Scan(&version)
 	if err != nil {
-		sentry.CaptureException(err)
+		fmt.Println(err.Error())
 		return
 	}
 
@@ -163,21 +154,21 @@ func (m *migrator) setVersion(version float64) (err error) {
 
 	statement, err := m.database.Prepare("INSERT INTO db_version (version) VALUES (?)")
 	if err != nil {
-		sentry.CaptureException(err)
+		fmt.Println(err.Error())
 		return
 	}
 
 	defer func() {
 		err2 := statement.Close()
 		if err2 != nil {
-			sentry.CaptureException(err2)
+			fmt.Println(err2.Error())
 		}
 	}()
 
 	_, err = statement.Exec(version)
 	if err != nil {
 
-		sentry.CaptureException(err)
+		fmt.Println(err.Error())
 
 	}
 
