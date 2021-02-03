@@ -1,13 +1,13 @@
 package MariaDB
 
 import (
-	"GoBasic/StrukturaProjekta/DB"
+	"GoBasic/StrukturaProjekta/DataStructures"
 	"errors"
 	"fmt"
 )
 
 //Funkcija iz interface-a
-func (db *MariaDB) GetUsers() (users []DB.User, err error) {
+func (db *MariaDB) GetUsers() (users []DataStructures.User, err error) {
 
 	//Naredimo query na bazo
 	//Za stavke od katerih ne pričakujemo odgovora (UPDATE, INSERT) uporabimo namesto "Query" "Exec"
@@ -31,8 +31,8 @@ func (db *MariaDB) GetUsers() (users []DB.User, err error) {
 	}()
 
 	//Ustvarimo objekt User in neomejen array tipa User
-	var user DB.User
-	users = make([]DB.User, 0)
+	var user DataStructures.User
+	users = make([]DataStructures.User, 0)
 
 	//Loop čez vse vrstice
 	for rows.Next() {
@@ -54,7 +54,7 @@ func (db *MariaDB) GetUsers() (users []DB.User, err error) {
 
 }
 
-func (db *MariaDB) GetUserById(userId int) (user DB.User, err error) {
+func (db *MariaDB) GetUserById(userId int) (user DataStructures.User, err error) {
 
 	rows, err := db.database.Query("SELECT user_id, username, email from user  WHERE user_id = ? LIMIT 1", userId)
 	if err != nil {

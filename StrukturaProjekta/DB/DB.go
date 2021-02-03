@@ -1,5 +1,7 @@
 package DB
 
+import "GoBasic/StrukturaProjekta/DataStructures"
+
 type DB interface {
 	Init() (err error)
 
